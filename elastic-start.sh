@@ -1,0 +1,1 @@
+sudo -u daemon -s bash -c "bash /kkh/elasticsearch-8.8.0/bin/elasticsearch"

@@ -165,6 +165,48 @@ def start():
     eval_rag(react_agent, "./data/eval.jsonl", "./sample_submission.csv")
 
 
+# if __name__ == "__main__":
+#     os.environ["TOKENIZERS_PARALLELISM"] = "false"
+#     start()
+
+
+def find_non_science_questions_by_gemma(react_agent, eval_filename):
+    non_science_eval_ids = []
+    science_eval_ids = []
+    with open(eval_filename) as f:
+        for index, line in enumerate(f):
+            if index == 10:
+                break
+            try:
+                j = json.loads(line)
+                msg_list = j["msg"]
+                content = f'{j["msg"][0]["content"]}\n\n위 문장이 과학 상식 관련 질문인지 검토해줘.\n만약, 과학 상식 관련 질문이 아니라면 "아님"라고만 답변해줘. 맞으면, "맞음"이라고만 답변해줘.'
+                print(f'====== (시작)index = {index} ==================')
+                print(content)
+                response = react_agent.answer_question([{"role": "user", "content": content}])
+                if "아님" in response["answer"]:
+                    print(f'====== (종료)index = {index} 과학 아님!! =============')
+                    non_science_eval_ids.append(j["eval_id"])
+                elif "맞음" in response["answer"]:
+                    print(f'====== (종료)index = {index} 과학 맞음!! =============')
+                    science_eval_ids.append(j["eval_id"])
+                print(f'=================================')
+            except json.JSONDecodeError:
+                print(f"Error parsing line: {line}")
+    
+    print(f"과학 상식 관련 질문이 아닌 eval_id 리스트")
+    for eval_id in non_science_eval_ids:
+        print(f"{eval_id}")
+    print(f"과학 상식 관련 질문이 맞는 eval_id 리스트")
+    for eval_id in science_eval_ids:
+        print(f"{eval_id}")
+
+
+# 함수 사용 예시
 if __name__ == "__main__":
-    os.environ["TOKENIZERS_PARALLELISM"] = "false"
-    start()
+    # 젬마 모델 초기화
+    gemma_model = "rtzr/ko-gemma-2-9b-it"
+    react_agent = GemmaGPT(gemma_model)
+
+    # 과학 상식과 관련 없는 질문의 eval_id를 찾는 함수 실행
+    find_non_science_questions_by_gemma(react_agent, "./data/eval.jsonl")
