@@ -17,6 +17,59 @@ import google.generativeai as genai
 from IPython.display import display
 from IPython.display import Markdown
 
+from openai import OpenAI
+
+class Solar:
+    def __init__(self, api_key_path, model="solar-pro"):
+        self.api_key_path = api_key_path
+        self.model = model
+        self.api_key = self.load_api_key()
+        self.client = OpenAI(api_key=self.api_key, base_url="https://api.upstage.ai/v1/solar")
+
+    def load_api_key(self):
+        try:
+            with open(self.api_key_path, 'r') as file:
+                api_key = file.readline().strip()
+            if not api_key:
+                raise ValueError("API key is empty.")
+            # os.environ["OPENAI_API_KEY"] = api_key
+            return api_key
+        except FileNotFoundError:
+            raise FileNotFoundError(f"Error: {self.api_key_path} not found.")
+        except ValueError as e:
+            raise ValueError(f"Error: {e}")
+
+    def chat(self, system_message, human_message):
+        set_stream = False
+        stream = self.client.chat.completions.create(
+            model=self.model,
+            messages=[
+                {"role": "system", "content": system_message},
+                {"role": "user", "content": human_message}
+            ],
+            stream=set_stream,
+        )
+
+        if set_stream:
+            for chunk in stream:
+                if chunk.choices[0].delta.content is not None:
+                    # print(chunk.choices[0].delta.content, end="")
+                    response = chunk.choices[0].delta.content
+        else:
+            response = stream.choices[0].message.content # stream=False인 경우
+        return response
+
+    def prompt_1(self, human_message):
+        system_message="""
+            사용자가 내용을 입력하면, 핵심 내용을 질문 형태로 요약해줘.
+            최대한 사용자가 작성한 단어를 그대로 사용하고, 임의로 새로운 단어 생성은 최대한 자제해줘.
+            반말이면, 요약도 반말로 해주고, 존댓말이면, 요약도 존댓말로 해줘.
+            영어 단어가 나와서, 요약할 때 해당 영단어를 적는것은 좋지만, 문장 전체를 영어로 적는 것은 자제해줘.
+            원문보다 더 길게 요약하지 말아줘.
+            쌍따옴표 사용하지 말아줘.
+            """
+        response = self.chat(system_message, human_message)
+        return response
 
 class Gemini:
     def __init__(self, api_key_path, model="gemini-1.5-flash"):
@@ -81,9 +134,9 @@ class Gemini:
             결과만 적어주고, 다른 내용은 적지 말아줘.
             """,
             generation_config=genai.types.GenerationConfig(
-                # candidate_count=1,
-                # stop_sequences=["x"],
-                # max_output_tokens=20,
+                candidate_count=1,
+                stop_sequences=["x"],
+                max_output_tokens=100,
                 temperature=0.1,
             )
         )
@@ -103,9 +156,9 @@ class Gemini:
             결과만 적어주고, 다른 내용은 적지 말아줘.
             """,
             generation_config=genai.types.GenerationConfig(
-                # candidate_count=1,
-                # stop_sequences=["x"],
-                # max_output_tokens=20,
+                candidate_count=1,
+                stop_sequences=["x"],
+                max_output_tokens=100,
                 temperature=0.1,
             )
         )
@@ -384,11 +437,8 @@ class Reranker:
         
         # 스코어와 인덱스 페어 생성
         scored_docs = [(score, idx) for idx, score in enumerate(scores)]
-        # 스코어를 기준으로 내림차순 정렬
-        scored_docs = sorted(scored_docs, key=lambda x: x[0], reverse=True)
-        # print(f'#####################scored_docs: {scored_docs}')
+        scored_docs = sorted(scored_docs, key=lambda x: x[0], reverse=True) # 내림차순 정렬
 
-        # 상위 k개의 문서 선택
         topk = []
         references = []
         for score, idx in scored_docs[:k]:
@@ -396,7 +446,6 @@ class Reranker:
             references.append({"score": float(score), "content": docs[idx]['content']})
         
         result = {"eval_id": eval_item["eval_id"], "standalone_query": eval_item["summary"], "topk": topk, "answer": references[0]["content"], "references": references}
-        # print(f'#####################result: {result}')
         return result
 
 
@@ -459,7 +508,9 @@ def make_summary_eval(docs, summary_model):
         if len(messages) > 1:  # 대화문이 2개 이상인 경우
             full_conversation = "  ".join([f"{msg['content']}" for msg in messages])
             print(f'=== 요약 시작(eval):\n{full_conversation}')
-            summarized_text = summary_model.prompt_2(full_conversation)
+            summarized_text = summary_model.prompt_1(full_conversation)
+            import time
+            time.sleep(2)
             # summarized_text = full_conversation
             print(f'=== 요약 완료(eval):\n{summarized_text}')
         doc["summary"] = summarized_text
@@ -635,6 +686,7 @@ def start():
 
 
     # [모델 생성]
+    solar = Solar(api_key_path="./ex-key/upstage-helpotcreator-key.txt", model="solar-pro")
     embedder = Embedder("klue/roberta-large")
     gemini = Gemini(api_key_path='./ex-key/google-aistudio-helpotcreator-key.txt', model="gemini-1.5-flash")
     db_es = ElasticDB()
@@ -643,12 +695,12 @@ def start():
     
 
     # [요약]
-    # file_eval_list_summary = make_summary_eval(docs=file_eval_list, summary_model=gemini)
+    # file_eval_list_summary = make_summary_eval(docs=file_eval_list, summary_model=solar)
     # save_file(file_eval_list_summary, "./data/eval_summary.jsonl")
 
 
     # [저장한 파일들 로딩]
-    file_eval_list_summary = read_jsonl_file("./data/eval_summary_origin.jsonl")
+    file_eval_list_summary = read_jsonl_file("./data/eval_summary.jsonl")
 
 
     # [임베딩_test(gemini)]
