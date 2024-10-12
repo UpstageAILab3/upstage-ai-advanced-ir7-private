@@ -686,11 +686,11 @@ def start():
 
 
     # [모델 생성]
-    solar = Solar(api_key_path="./ex-key/upstage-helpotcreator-key.txt", model="solar-pro")
-    embedder = Embedder("klue/roberta-large")
-    gemini = Gemini(api_key_path='./ex-key/google-aistudio-helpotcreator-key.txt', model="gemini-1.5-flash")
+    # solar = Solar(api_key_path="./ex-key/upstage-helpotcreator-key.txt", model="solar-pro")
+    # embedder = Embedder("klue/roberta-large")
+    # gemini = Gemini(api_key_path='./ex-key/google-aistudio-helpotcreator-key.txt', model="gemini-1.5-flash")
+    # db_faiss = FaissDB(dim=768)
     db_es = ElasticDB()
-    db_faiss = FaissDB(dim=768)
     reranker = Reranker(model_name='Dongjin-kr/ko-reranker')
     
 
@@ -700,7 +700,7 @@ def start():
 
 
     # [저장한 파일들 로딩]
-    file_eval_list_summary = read_jsonl_file("./data/eval_summary.jsonl")
+    file_eval_list_summary = read_jsonl_file("./data/eval_summary_hand.jsonl")
 
 
     # [임베딩_test(gemini)]
