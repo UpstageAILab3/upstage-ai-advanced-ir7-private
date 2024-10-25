@@ -86,7 +86,8 @@ e.g.
 
 ### Leader Board
 
-![image](https://github.com/user-attachments/assets/b8ef99e6-d972-4f53-bc46-d9d310d2c0fd)
+![image](https://github.com/user-attachments/assets/38da8a88-0738-4e50-ac7e-a854fe04cb99)
+
 
 
 ### Presentation
