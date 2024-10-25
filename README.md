@@ -1,8 +1,8 @@
 [![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/Tm6AYAOm)
-# Title (Please modify the title)
 ## Team
 
-![image](https://github.com/user-attachments/assets/18f06e88-74e9-4452-81ec-ac226e62997c)
+![image](https://github.com/user-attachments/assets/471b8db2-5122-46ca-ad50-78fc7236f66d)
+
 
 
 
@@ -93,6 +93,7 @@ e.g.
 
 ### Presentation
 
-- _Insert your presentaion file(pdf) link_ (이 부분 나중에 채우기)
+- [Uploading Blue Modern Artificial Intelligence Presentation.pdf…]()
+
 
 
