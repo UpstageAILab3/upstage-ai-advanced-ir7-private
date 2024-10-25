@@ -2,7 +2,8 @@
 # Title (Please modify the title)
 ## Team
 
-![image](https://github.com/user-attachments/assets/57586433-261e-4f14-b811-8861ba1757cd)
+![image](https://github.com/user-attachments/assets/18f06e88-74e9-4452-81ec-ac226e62997c)
+
 
 
 ## 1. Competiton Info
